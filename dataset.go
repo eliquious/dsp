@@ -49,7 +49,7 @@ func (d DataSet) MapRange() DataSet {
 	min, max := d.Bounds()
 	dataRange := d.Range()
 	return d.Do(func(v float64) float64 {
-		return Map(v/dataRange, min/dataRange, max/dataRange, 0, 1)
+		return Scale(v/dataRange, min/dataRange, max/dataRange, 0, 1)
 	})
 }
 
@@ -57,7 +57,7 @@ func (d DataSet) MapRange() DataSet {
 func (d DataSet) Map(start1, stop1, start2, stop2 float64) DataSet {
 	mappedValues := make([]float64, len(d))
 	for i := 0; i < len(d); i++ {
-		mappedValues[i] = Map(d[i], start1, stop1, start2, stop2)
+		mappedValues[i] = Scale(d[i], start1, stop1, start2, stop2)
 	}
 	return mappedValues
 }
@@ -80,6 +80,11 @@ func (d DataSet) Add(num float64) DataSet {
 // Sub subtracts a number from all the points and returns a new DataSet.
 func (d DataSet) Sub(num float64) DataSet {
 	return d.Do(Sub(num))
+}
+
+// Log takes the log10 for all the points and returns a new DataSet.
+func (d DataSet) Log() DataSet {
+	return d.Do(LogFunc())
 }
 
 // Do performs a function on each point.
@@ -197,6 +202,27 @@ func Sub(num float64) MapFunc {
 	return Add(-num)
 }
 
+// ScaleFunc returns a map function for scalling the data set
+func ScaleFunc(start1, stop1, start2, stop2 float64) MapFunc {
+	return func(v float64) float64 {
+		return Scale(v, start1, stop1, start2, stop2)
+	}
+}
+
+// LogFunc returns a map function for the log10 of the data set
+func LogFunc() MapFunc {
+	return func(v float64) float64 {
+		return math.Log10(v)
+	}
+}
+
+// AbsFunc returns a map function for the abs of the data set
+func AbsFunc() MapFunc {
+	return func(v float64) float64 {
+		return math.Abs(v)
+	}
+}
+
 // ReduceFunc reduces the float64 slice to a single float64 value
 type ReduceFunc func([]float64) float64
 
@@ -231,7 +257,7 @@ func sumReduce(data []float64) float64 {
 	return value
 }
 
-// Map maps a number from one range to another.
-func Map(value, start1, stop1, start2, stop2 float64) float64 {
+// Scale maps a number from one range to another.
+func Scale(value, start1, stop1, start2, stop2 float64) float64 {
 	return start2 + (stop2-start2)*((value-start1)/(stop1-start1))
 }
